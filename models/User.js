@@ -37,8 +37,17 @@ const UserSchema = new mongoose.Schema({
         minLength: 10,
         trim: true
     },
-    enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }]
-}, { timestamps: true })
+    // enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }]
+}, {
+    timestamps: true,
+    toJSON: {
+        virtuals: true,
+    }
+})
+
+UserSchema.virtual('UserRole').get(function () { // to return this NameAndEmail with properties but not saved in the DB and make the id like this : id not  _id
+  return `${this.name} is ${this.role}`;
+});
 
 
 // User model

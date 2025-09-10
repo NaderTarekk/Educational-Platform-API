@@ -85,6 +85,8 @@ router.post("/login", asyncHandler(
 router.get("/", verifyTokenAndAdmin, asyncHandler(
     async (req, res) => {
         const { pageNumber } = req.query;
+        console.log(pageNumber);
+        
         const usersPerPage = 3;
         var usersList = await User.find()
             .skip((pageNumber - 1) * usersPerPage)

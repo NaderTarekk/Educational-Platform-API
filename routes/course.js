@@ -4,11 +4,19 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
     const { pageNumber } = req.query;
-        const coursesPerPage = 3;
-        var coursesList = await Course.find()
-            .skip((pageNumber - 1) * coursesPerPage)
-            .limit(coursesPerPage);
-        res.status(200).json(coursesList);
+    const coursesPerPage = 3;
+
+    const courses = await Course.find()
+        // .populate(["students", { // if you want to get the student details inside courses
+        .populate({
+            path: 'sections',
+            select: 'title order',
+            options: { sort: { order: 1 } }
+        })
+        .lean({ virtuals: true }).skip((pageNumber - 1) * coursesPerPage)
+        .limit(coursesPerPage);
+
+    res.status(200).json(courses);
 })
 
 router.get("/:id", async (req, res) => {

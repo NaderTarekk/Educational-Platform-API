@@ -6,64 +6,83 @@ const courseSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        min: 1,
+        minlength: 1,
         maxlength: 100,
-        trim: true
+        trim: true,
     },
     slug: {
         type: String,
         required: true,
-        min: 1,
+        minlength: 1,
         maxlength: 200,
-        trim: true
+        trim: true,
+        lowercase: true,
+        unique: true,
+        index: true,
     },
     description: {
         type: String,
         required: true,
-        min: 1,
-        trim: true
+        minlength: 1,
+        trim: true,
     },
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: "CourseCategory"
+        ref: "CourseCategory",
+        index: true,
     },
     instructorId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: "User"
+        ref: "User",
+        index: true,
     },
     price: {
         type: Number,
         required: true,
-        min: 0
+        min: 0,
     },
     discount: {
         type: Number,
-        min: 0
+        min: 0,
+        max: 100,
+        default: 0,
     },
     thumbnail: {
         type: String,
         required: true,
+        trim: true,
     },
     promoVideoUrl: {
         type: String,
-        min: 1
+        trim: true,
     },
     status: {
         type: String,
-        required: true,
-        min: 1,
-        trim: true
+        enum: ['draft', 'published'],
+        default: 'draft',
+        index: true,
     },
     ratingAvg: {
         type: Number,
         min: 0,
-        trim: true
+        max: 5,
+        default: 0,
     },
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
-}, { timestamps: true })
+    // students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+}, {
+    timestamps: true,
+});
 
+// get sections by course id (virtual populate)
+courseSchema.virtual('sections', {
+    ref: 'CourseSection',
+    localField: '_id',
+    foreignField: 'courseId',
+    justOne: false,
+    options: { sort: { order: 1 } },
+});
 
 // Course model
 const Course = mongoose.model("Course", courseSchema);
