@@ -2,6 +2,7 @@ const express = require("express");
 const { Lesson, validateCreateLesson, validateUpdateLesson } = require("../models/Lesson");
 const asyncHandler = require("express-async-handler");
 const { CourseSection } = require("../models/CourseSection");
+const { verifyTokenAndAdmin, verifyTokenAdminAndInstructor } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 /**
@@ -35,7 +36,7 @@ router.get("/:id", asyncHandler(async (req, res) => {
  * @method POST
  * @access public
 */
-router.post("/", asyncHandler(async (req, res) => {
+router.post("/", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     const { error } = validateCreateLesson(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -72,7 +73,7 @@ router.post("/", asyncHandler(async (req, res) => {
  * @method PUT
  * @access public
 */
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyTokenAdminAndInstructor, asyncHandler( async (req, res) => {
     const { error } = validateUpdateLesson(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -91,7 +92,6 @@ router.put("/:id", async (req, res) => {
         }
     }
 
-
     const lesson = await Lesson.findByIdAndUpdate(req.params.id, {
         $set: {
             title: req.body.title,
@@ -105,7 +105,7 @@ router.put("/:id", async (req, res) => {
     }, { new: true });
 
     res.status(200).json(lesson);
-})
+}));
 
 /**
  * @desc delete lesson
@@ -113,7 +113,7 @@ router.put("/:id", async (req, res) => {
  * @method DELETE
  * @access public
 */
-router.delete("/:id", asyncHandler(async (req, res) => {
+router.delete("/:id", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     const lesson = await Lesson.findById(req.params.id);
     if (lesson) {
         await Lesson.findByIdAndDelete(req.params.id);

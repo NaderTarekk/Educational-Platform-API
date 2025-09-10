@@ -2,6 +2,7 @@ const express = require("express");
 const { CourseSection, validateCreateCourseSection, validateUpdateCourseSection } = require("../models/CourseSection");
 const { Course } = require("../models/Course");
 const asyncHandler = require("express-async-handler");
+const { verifyTokenAndAdmin } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 /**
@@ -15,13 +16,13 @@ router.get("/courseSections/:id", asyncHandler(async (req, res) => {
     res.status(200).send(sections)
 }));
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", asyncHandler(async (req, res) => {
     const section = await CourseSection.findById(req.params.id);
     if (!section) {
         return res.status(404).json({ message: "Section not found" });
     }
     res.status(200).send(section);
-})
+}));
 
 /**
  * @desc create new section
@@ -29,7 +30,7 @@ router.get("/:id", async (req, res) => {
  * @method POST
  * @access public
 */
-router.post("/", asyncHandler(async (req, res) => {
+router.post("/", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { error } = validateCreateCourseSection(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -61,7 +62,7 @@ router.post("/", asyncHandler(async (req, res) => {
  * @method PUT
  * @access public
 */
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { error } = validateUpdateCourseSection(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -88,9 +89,9 @@ router.put("/:id", async (req, res) => {
     }, { new: true });
 
     res.status(200).json(section);
-})
+}));
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const section = await CourseSections.findById(req.params.id);
     if (section) {
         await CourseSections.findByIdAndDelete(req.params.id);
@@ -98,6 +99,6 @@ router.delete("/:id", async (req, res) => {
     } else {
         res.status(404).json({ message: "Section not found" });
     }
-})
+}))
 
 module.exports = router;

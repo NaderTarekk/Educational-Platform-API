@@ -3,6 +3,7 @@ const { Question, validateUpdateQuestion, validateCreateQuestion } = require("..
 const asyncHandler = require("express-async-handler");
 const { CourseSection } = require("../models/CourseSection");
 const { User } = require("../models/User");
+const { verifyTokenAdminAndInstructor, verifyTokenAndAuthorization } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 /**
@@ -11,7 +12,7 @@ const router = express.Router();
  * @method GET
  * @access public
 */
-router.get("/:id", asyncHandler(async (req, res) => {
+router.get("/:id", verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
     const question = await Question.find({ _id: req.params.id });
     res.status(200).json(question)
 }));
@@ -22,7 +23,7 @@ router.get("/:id", asyncHandler(async (req, res) => {
  * @method GET
  * @access public
 */
-router.get("/quizId/:id", asyncHandler(async (req, res) => {
+router.get("/quizId/:id", verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
     const question = await Question.find({ quizId: req.params.id });
     res.status(200).json(question)
 }));
@@ -33,7 +34,7 @@ router.get("/quizId/:id", asyncHandler(async (req, res) => {
  * @method POST
  * @access public
 */
-router.post("/", asyncHandler(async (req, res) => {
+router.post("/", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     const { error } = validateCreateQuestion(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -58,7 +59,7 @@ router.post("/", asyncHandler(async (req, res) => {
  * @method PUT
  * @access public
 */
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     console.log(req.body.options);
 
     const { error } = validateUpdateQuestion(req.body);
@@ -77,7 +78,7 @@ router.put("/:id", async (req, res) => {
     }, { new: true });
 
     res.status(200).json(question);
-})
+}));
 
 /**
  * @desc delete question
@@ -85,7 +86,7 @@ router.put("/:id", async (req, res) => {
  * @method DELETE
  * @access public
 */
-router.delete("/:id", asyncHandler(async (req, res) => {
+router.delete("/:id", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     const question = await Question.findById(req.params.id);
     if (question) {
         await Question.findByIdAndDelete(req.params.id);

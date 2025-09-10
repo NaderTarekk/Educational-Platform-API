@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 const { User } = require("../models/User");
 const { Course } = require("../models/Course");
 const router = express.Router();
+const { verifyTokenAndAdmin, verifyTokenAdminAndInstructor, verifyTokenAndAuthorization } = require("../middlewares/verifyToken");
 
 /**
  * @desc get all orders
@@ -11,7 +12,7 @@ const router = express.Router();
  * @method GET
  * @access public
 */
-router.get("/", asyncHandler(async (req, res) => {
+router.get("/", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { pageNumber } = req.query;
     const ordersPerPage = 5;
     const orders = await Order.find().skip((pageNumber - 1) * ordersPerPage)
@@ -25,11 +26,10 @@ router.get("/", asyncHandler(async (req, res) => {
  * @method GET
  * @access public
 */
-router.get("/:id", asyncHandler(async (req, res) => {
+router.get("/:id", verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
     res.status(200).json(order)
 }));
-
 
 /**
  * @desc create new order
@@ -37,7 +37,7 @@ router.get("/:id", asyncHandler(async (req, res) => {
  * @method POST
  * @access public
 */
-router.post("/", asyncHandler(async (req, res) => {
+router.post("/", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { error, value } = validateCreateOrder(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 

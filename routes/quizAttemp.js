@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 const { CourseSection } = require("../models/CourseSection");
 const { User } = require("../models/User");
 const { Quiz } = require("../models/Quiz");
+const { verifyTokenAndAuthorization } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 /**
@@ -12,7 +13,7 @@ const router = express.Router();
  * @method GET
  * @access public
 */
-router.get("/:id", asyncHandler(async (req, res) => {
+router.get("/:id", verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
     const question = await QuizAttemp.findById(req.params.id);
     res.status(200).json(question)
 }));
@@ -23,7 +24,7 @@ router.get("/:id", asyncHandler(async (req, res) => {
  * @method GET
  * @access public
 */
-router.get("/userId/:id", asyncHandler(async (req, res) => {
+router.get("/userId/:id", verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
     const quizzes = await QuizAttemp.find({ userId: req.params.id });
     res.status(200).json(quizzes)
 }));
@@ -34,7 +35,7 @@ router.get("/userId/:id", asyncHandler(async (req, res) => {
  * @method POST
  * @access public
 */
-router.post("/", asyncHandler(async (req, res) => {
+router.post("/", verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
     const { error } = validateCreateAttempt(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });

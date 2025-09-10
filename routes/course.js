@@ -1,13 +1,15 @@
 const express = require("express");
 const { Course, validateCreateCourse, validateUpdateCourse } = require("../models/Course");
 const router = express.Router();
+const asyncHandler = require("express-async-handler");
+const { verifyTokenAndAdmin } = require("../middlewares/verifyToken");
 
 router.get("/", async (req, res) => {
     const { pageNumber } = req.query;
     const coursesPerPage = 3;
 
     const courses = await Course.find()
-        // .populate(["students", { // if you want to get the student details inside courses
+        // .populate(["students", { 
         .populate({
             path: 'sections',
             select: 'title order',
@@ -19,15 +21,15 @@ router.get("/", async (req, res) => {
     res.status(200).json(courses);
 })
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", asyncHandler(async (req, res) => {
     const course = await Course.findById(req.params.id);
     if (!course) {
         return res.status(404).json({ message: "Course not found" });
     }
     res.status(200).send(course);
-})
+}));
 
-router.post("/", async (req, res) => {
+router.post("/", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { error } = validateCreateCourse(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -48,9 +50,9 @@ router.post("/", async (req, res) => {
     var result = await course.save();
 
     res.status(201).json(result);
-})
+}))
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { error } = validateUpdateCourse(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -73,9 +75,9 @@ router.put("/:id", async (req, res) => {
     }, { new: true });
 
     res.status(200).json(course);
-})
+}));
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const course = await Course.findById(req.params.id);
     if (course) {
         await Course.findByIdAndDelete(req.params.id);
@@ -83,6 +85,6 @@ router.delete("/:id", async (req, res) => {
     } else {
         res.status(404).json({ message: "Course not found" });
     }
-})
+}));
 
 module.exports = router;

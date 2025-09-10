@@ -38,4 +38,14 @@ function verifyTokenAndAdmin(req, res, next) {
     })
 }
 
-module.exports = { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin };
+function verifyTokenAdminAndInstructor(req, res, next) {
+    verifyToken(req, res, () => {
+        if (req.user.role === "admin" || req.user.role === "instructor") {
+            next();
+        } else {
+            return res.status(403).json({ message: "You are not allowed, Only admins and instructors allowed" })
+        }
+    })
+}
+
+module.exports = { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin, verifyTokenAdminAndInstructor };

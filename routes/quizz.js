@@ -1,10 +1,8 @@
 const express = require("express");
 const { Quiz, validateUpdateQuiz, validateCreateQuiz } = require("../models/Quiz");
 const asyncHandler = require("express-async-handler");
-const { Lesson } = require("../models/Lesson");
-const { Course } = require("../models/Course");
-const { User } = require("../models/User");
 const { CourseSection } = require("../models/CourseSection");
+const { verifyTokenAndAuthorization, verifyTokenAdminAndInstructor } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 /**
@@ -13,7 +11,7 @@ const router = express.Router();
  * @method GET
  * @access public
 */
-router.get("/:id", asyncHandler(async (req, res) => {
+router.get("/:id", verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
     const quiz = await Quiz.find({ sectionId: req.params.id });
     res.status(200).send(quiz)
 }));
@@ -24,7 +22,7 @@ router.get("/:id", asyncHandler(async (req, res) => {
  * @method POST
  * @access public
 */
-router.post("/", asyncHandler(async (req, res) => {
+router.post("/", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     const { error } = validateCreateQuiz(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -57,7 +55,7 @@ router.post("/", asyncHandler(async (req, res) => {
  * @method PUT
  * @access public
 */
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     const { error } = validateUpdateQuiz(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -82,7 +80,7 @@ router.put("/:id", async (req, res) => {
     }, { new: true });
 
     res.status(200).json(quiz);
-})
+}));
 
 /**
  * @desc delete quiz
@@ -90,7 +88,7 @@ router.put("/:id", async (req, res) => {
  * @method DELETE
  * @access public
 */
-router.delete("/:id", asyncHandler(async (req, res) => {
+router.delete("/:id", verifyTokenAdminAndInstructor, asyncHandler(async (req, res) => {
     const quiz = await Quiz.findById(req.params.id);
     if (quiz) {
         await Quiz.findByIdAndDelete(req.params.id);

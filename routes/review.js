@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 const { User } = require("../models/User");
 const { Course } = require("../models/Course");
 const { ensureUniqueReview } = require("../middlewares/ensureUniqueReview");
+const { verifyTokenAndAdmin, verifyTokenAndAuthorization } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 /**
@@ -12,12 +13,12 @@ const router = express.Router();
  * @method GET
  * @access public
 */
-router.get("/", asyncHandler(async (req, res) => {
+router.get("/", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { pageNumber } = req.query;
     const reviewsPerPage = 3;
     const reviews = await Review.find().skip((pageNumber - 1) * reviewsPerPage)
         .limit(reviewsPerPage);
-    res.status(200).json(reviews)
+    res.status(200).json(reviews);
 }));
 
 /**
@@ -26,7 +27,7 @@ router.get("/", asyncHandler(async (req, res) => {
  * @method GET
  * @access public
 */
-router.get("/:id", asyncHandler(async (req, res) => {
+router.get("/:id", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const review = await Review.find({ userId: req.params.id });
     res.status(200).json(review)
 }));
@@ -38,7 +39,7 @@ router.get("/:id", asyncHandler(async (req, res) => {
  * @method POST
  * @access public
 */
-router.post("/", ensureUniqueReview, asyncHandler(async (req, res) => {
+router.post("/", verifyTokenAndAuthorization, ensureUniqueReview, asyncHandler(async (req, res) => {
     const { error } = validateCreateReview(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
